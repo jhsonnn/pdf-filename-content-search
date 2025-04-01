@@ -29,17 +29,17 @@ everything.Everything_GetResultPathW.argtypes = [ctypes.c_int]
 everything.Everything_GetResultPathW.restype = ctypes.c_wchar_p
 
 def ensure_everything_running():
-    # 현재 실행 중인 프로세스 확인
+    # Check currently running processes
     for proc in psutil.process_iter(['name']):
         if proc.info['name'] and 'everything.exe' in proc.info['name'].lower():
             print("Everything already running.")
-            return  # 이미 실행 중이면 종료
+            return  # Exit if already running
 
-    # 실행 중이 아니면 백그라운드에서 실행
+    # Launch in the background if not running
     try:
         print("Launching Everything in the background...")
         startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # 창 숨기기
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # Hide window
         subprocess.Popen(
             [EVERYTHING_PATH, "-startup"],
             creationflags=subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS,
@@ -65,7 +65,7 @@ def check_pdf_file(filepath, content_keywords):
                         excerpt = get_excerpt(text, content_keywords)
                         return os.path.basename(filepath), filepath, page_num, excerpt
     except Exception as e:
-        print(f"PDF 열기 실패: {filepath} → {e}")
+        print(f"Failed to open PDF: {filepath} → {e}")
     return None
 
 def get_excerpt(text, keywords):
@@ -77,7 +77,7 @@ def get_excerpt(text, keywords):
     return "..."
 
 def run_pdf_search(content_keywords):
-    update_status("PDF 내용 검색 중...")
+    update_status("Searching PDF content...")
     all_pdf_files = []
     for folder in TARGET_FOLDERS:
         full_path = os.path.join(SEARCH_FOLDER, folder)
@@ -99,25 +99,26 @@ def run_pdf_search(content_keywords):
         pdf_table.delete(*pdf_table.get_children())
         for filename, filepath, page_num, excerpt in results:
             pdf_table.insert("", "end", values=(filename, filepath, page_num, excerpt))
-        pdf_count_label.config(text=f"({len(results)}건)")
-        update_status("PDF 내용 검색 완료.")
+        pdf_count_label.config(text=f"({len(results)} results)")
+        update_status("PDF content search completed.")
 
     root.after(0, update_ui)
 
 def everything_search(keyword):
     ensure_everything_running()
 
-    # 검색 쿼리 생성
+    # Generate search query
+
     search_query = f'path:"{os.path.join(SEARCH_FOLDER, "1")}" | path:"{os.path.join(SEARCH_FOLDER, "2")}" {keyword}'
     print(f"Executing search query: {search_query}")
     everything.Everything_SetSearchW(search_query)
     everything.Everything_QueryW(1)
 
-    # 검색 결과 개수 가져오기
+    # Retrieve the number of search results
     num_results = everything.Everything_GetNumResults()
     print(f"Number of results: {num_results}")
 
-    # 검색 결과 처리
+    # Process search results
     results = [
         (
             everything.Everything_GetResultFileNameW(i), 
@@ -126,28 +127,28 @@ def everything_search(keyword):
         for i in range(min(num_results, MAX_RESULTS))
     ]
 
-    # 중복 제거
+    # Remove duplicates
     unique_results = list(set(results))
     print(f"Unique Results: {unique_results}")
     return unique_results
 
 def run_filename_search(filename_keywords):
-    update_status("파일명 검색 중...")
+    update_status("Searching filenames...")
     results = []
 
-    # 키워드별로 검색 수행
+    # Perform search for each keyword
     for keyword in filename_keywords:
         results.extend(everything_search(keyword))
 
-    # 중복 제거
+    # Remove duplicates
     unique_results = list(set(results))
 
     def update_ui():
         filename_table.delete(*filename_table.get_children())
         for file, path in unique_results:
             filename_table.insert("", "end", values=(file, path))
-        filename_count_label.config(text=f"({len(unique_results)}건)")
-        update_status("파일명 검색 완료.")
+        filename_count_label.config(text=f"({len(unique_results)} results)")
+        update_status("Filename search completed.")
 
     root.after(0, update_ui)
 
@@ -157,7 +158,7 @@ def search_pdf_content():
     if content_keywords:
         threading.Thread(target=run_pdf_search, args=(content_keywords,), daemon=True).start()
     else:
-        messagebox.showwarning("입력 필요", "PDF 내용 검색어를 입력하세요.")
+        messagebox.showwarning("Input required", "Please enter PDF content keywords.")
 
 def search_filename():
     filename_input = entry_filename.get().strip()
@@ -165,7 +166,7 @@ def search_filename():
     if filename_keywords:
         threading.Thread(target=run_filename_search, args=(filename_keywords,), daemon=True).start()
     else:
-        messagebox.showwarning("입력 필요", "파일명 검색어를 입력하세요.")
+        messagebox.showwarning("Input required", "Please enter filename keywords.")
 
 def clear_content_field():
     entry_content.delete(0, tk.END)
@@ -184,37 +185,37 @@ if __name__ == "__main__":
 
 # GUI setup
 root = tk.Tk()
-root.title("PDF 내부 텍스트 및 파일명 검색기")
+root.title("PDF Text and Filename Search Tool")
 root.geometry("1000x800")
 
 search_frame = tk.Frame(root)
 search_frame.pack(padx=10, pady=10, anchor="w")
 
 # Filename search
-tk.Label(search_frame, text="📁 파일명 검색어").grid(row=0, column=0, sticky="w")
+tk.Label(search_frame, text="📁 Filename Keywords").grid(row=0, column=0, sticky="w")
 entry_filename = tk.Entry(search_frame, width=70)
 entry_filename.grid(row=0, column=1, padx=(5, 5))
-tk.Button(search_frame, text="검색", width=8, command=search_filename).grid(row=0, column=2)
-tk.Button(search_frame, text="초기화", width=8, command=clear_filename_field).grid(row=0, column=3)
+tk.Button(search_frame, text="Search", width=8, command=search_filename).grid(row=0, column=2)
+tk.Button(search_frame, text="Clear", width=8, command=clear_filename_field).grid(row=0, column=3)
 
 # PDF content search
-tk.Label(search_frame, text="📄 PDF 내용 검색어").grid(row=1, column=0, sticky="w")
+tk.Label(search_frame, text="📄 PDF Content Keywords").grid(row=1, column=0, sticky="w")
 entry_content = tk.Entry(search_frame, width=70)
 entry_content.grid(row=1, column=1, padx=(5, 5))
-tk.Button(search_frame, text="검색", width=8, command=search_pdf_content).grid(row=1, column=2)
-tk.Button(search_frame, text="초기화", width=8, command=clear_content_field).grid(row=1, column=3)
+tk.Button(search_frame, text="Search", width=8, command=search_pdf_content).grid(row=1, column=2)
+tk.Button(search_frame, text="Clear", width=8, command=clear_content_field).grid(row=1, column=3)
 
 # Filename search results
 file_frame = tk.Frame(root)
-tk.Label(root, text="📁 파일명 검색 결과", anchor="w").pack(fill="x", padx=10, pady=(5, 0))
-filename_count_label = tk.Label(root, text="(0건)", anchor="e")
+tk.Label(root, text="📁 Filename Search Results", anchor="w").pack(fill="x", padx=10, pady=(5, 0))
+filename_count_label = tk.Label(root, text="(0 results)", anchor="e")
 filename_count_label.pack(fill="x", padx=10)
 file_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-filename_table = ttk.Treeview(file_frame, columns=("파일명", "경로"), show="headings")
-filename_table.heading("파일명", text="파일명")
-filename_table.heading("경로", text="경로")
-filename_table.column("파일명", width=200)
-filename_table.column("경로", width=750)
+filename_table = ttk.Treeview(file_frame, columns=("Filename", "Path"), show="headings")
+filename_table.heading("Filename", text="Filename")
+filename_table.heading("Path", text="Path")
+filename_table.column("Filename", width=200)
+filename_table.column("Path", width=750)
 scroll2 = ttk.Scrollbar(file_frame, orient="vertical", command=filename_table.yview)
 filename_table.configure(yscrollcommand=scroll2.set)
 filename_table.pack(side="left", fill="both", expand=True)
@@ -222,16 +223,16 @@ scroll2.pack(side="right", fill="y")
 
 # PDF content search results
 pdf_frame = tk.Frame(root)
-tk.Label(root, text="📄 PDF 내용 검색 결과", anchor="w").pack(fill="x", padx=10, pady=(10, 0))
-pdf_count_label = tk.Label(root, text="(0건)", anchor="e")
+tk.Label(root, text="📄 PDF Content Search Results", anchor="w").pack(fill="x", padx=10, pady=(10, 0))
+pdf_count_label = tk.Label(root, text="(0 results)", anchor="e")
 pdf_count_label.pack(fill="x", padx=10)
 pdf_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-pdf_table = ttk.Treeview(pdf_frame, columns=("파일명", "경로", "페이지", "문장 발췌"), show="headings")
-for col in ("파일명", "경로", "페이지", "문장 발췌"):
+pdf_table = ttk.Treeview(pdf_frame, columns=("Filename", "Path", "Page", "Excerpt"), show="headings")
+for col in ("Filename", "Path", "Page","Excerpt"):
     pdf_table.heading(col, text=col)
-    if col == "경로":
+    if col == "Path":
         pdf_table.column(col, width=450)
-    elif col == "문장 발췌":
+    elif col == "Excerpt":
         pdf_table.column(col, width=300)
     else:
         pdf_table.column(col, width=100)
