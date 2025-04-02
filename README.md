@@ -29,7 +29,8 @@ Everything64.dll
 > `Everything64.dll` 파일을 `pdf-filename-content-search.py` 파일과 같은 폴더에 위치시키세요.
 
 You can also get `Everything64.dll` by installing [Everything](https://www.voidtools.com/downloads/).
-[Everything](https://www.voidtools.com/downloads/) 이 경로에서 다운 받을 수도 있습니다.
+[Everything](https://www.voidtools.com/downloads/) 
+이 경로에서 다운 받을 수도 있습니다.
 설치하셨다면면 Everything의 설치 폴더에서 `Everything64.dll` 파일을 찾아 복사하세요.
 
 복사 위치:
@@ -58,42 +59,31 @@ If you want to search in other folders, simply update the folder names in the co
 
 ## How to Run / 실행 방법
 Run the script using Python:
-python pdf-filename-content-search.py
+> python pdf-filename-content-search.py
 파이썬으로 위 명령어를 실행하면 GUI 창이 열립니다.
 
 
 ## How to Setup  Everything / Everything 세팅 방법
 To enable fast filename searching using Everything, you need to set the indexing folders:
 
-1. Open Everything
-
-2. Go to Tools > Options > Indexes > Folders
-
-3. Add the folders (e.g., C:\Users\YourUsername\Desktop\1, 2, etc.) you want to include in the search
-
-This will make the specified folders indexed by Everything, allowing for fast searching.
+> 1. Open Everything
+> 2. Go to Tools > Options > Indexes > Folders
+> 3. Add the folders (e.g., C:\Users\YourUsername\Desktop\1, 2, etc.) you want to include in the search
+> This will make the specified folders indexed by Everything, allowing for fast searching.
 
 Everything을 통한 빠른 파일명 검색을 위해 색인할 폴더를 설정해야 합니다:
-
-1. Everything을 실행하세요
-
-2. 도구 > 설정 > 색인 > 폴더 로 이동합니다
-
-3. 검색을 원하는 경로(예: C:\Users\YourUsername\Desktop\1, 2 등)를 추가하세요
-
-이렇게 설정하면 지정된 폴더 내 파일을 빠르게 검색할 수 있습니다.
+> 1. Everything을 실행하세요
+> 2. 도구 > 설정 > 색인 > 폴더 로 이동합니다
+> 3. 검색을 원하는 경로(예: C:\Users\YourUsername\Desktop\1, 2 등)를 추가하세요
+> 이렇게 설정하면 지정된 폴더 내 파일을 빠르게 검색할 수 있습니다.
 
 
 
 ## Features / 주요 기능
 - Fast filename search using Everything / Everything을 이용한 초고속 파일명 검색
-
 - PDF content search using pdfplumber / pdfplumber를 통한 PDF 내부 텍스트 검색
-
 - Multithreaded search with ThreadPoolExecutor / ThreadPoolExecutor를 사용한 멀티스레드 검색
-
 - GUI built with tkinter / tkinter 기반의 직관적인 GUI
-
 
 
 🖼️ Screenshot
@@ -103,16 +93,12 @@ Everything을 통한 빠른 파일명 검색을 위해 색인할 폴더를 설�
 
 🖥️ Compatibility / 호환성
 Windows only (Everything DLL is Windows-specific)
-
 Python 3.9+ recommended
-
 Windows 전용 (Everything은 Windows에서만 작동)
-
 Python 3.9 이상 권장
 
 
 
 📄 License
-
 This project is licensed under the MIT License.
 본 프로젝트는 MIT 라이센스로 배포됩니다.
